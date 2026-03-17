@@ -50,7 +50,7 @@ class PasswordService {
         if ($useLower) $selectedSets[] = $this->model->getSmallLetters();
         if ($useUpper) $selectedSets[] = $this->model->getCapitalLetters();
 
-        if (empty($selectedSets)) return 'At least one needs to be selected!';
+        if (empty($selectedSets)) return 'At least one more needs to be selected!';
 
         $passwordChars = [];
         foreach ($selectedSets as $set) {
@@ -82,6 +82,7 @@ class PasswordService {
 
 function renderPasswordForm() {
 
+
     $length = 12;
     $useNumbers = true;
     $useLower = true;
@@ -103,7 +104,6 @@ function renderPasswordForm() {
 
 
     }
-
 
     $checkedNumbers = $useNumbers ? 'checked' : '';
     $checkedLower = $useLower ? 'checked' : '';
@@ -127,7 +127,7 @@ function renderPasswordForm() {
                 <button type="submit">Generate</button>
             </form>
 
-            <div class="password">{$escapedPassword}</div>
+            <div id="password" class="password">{$escapedPassword}</div>
         </div>
     HTML;
 
@@ -172,6 +172,24 @@ input,button{
 
 <?php renderPasswordForm(); ?>
 
-
 </body>
+<script>
+    const newPass = document.getElementById('password').innerText.trim();
+
+    if (newPass && !newPass.includes('At least one')) {
+        
+        let storageData = localStorage.getItem('my_passwords');
+        let history = storageData ? JSON.parse(storageData) : [];
+
+        if (!history.includes(newPass)) {
+            history.push(newPass);
+            
+            localStorage.setItem('my_passwords', JSON.stringify(history));
+            console.log("pass saved to LocalStorage!");
+        } else {
+            alert("This pass already exists!");
+        }
+
+    }
+</script>
 </html> 
