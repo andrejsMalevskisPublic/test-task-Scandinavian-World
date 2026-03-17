@@ -14,14 +14,12 @@ class PasswordModel {
         return $letters . $numbers;
     }
 
-
     public function __construct() {
 
         $this->input = $this->getInput();
 
         preg_match_all('/\d/', $this->input, $nums);
         preg_match_all('/[a-z]/', $this->input, $letters);
-
 
         $this->numbers = array_unique($nums[0]);
         $this->smallLetters = $letters[0];
@@ -41,13 +39,9 @@ class PasswordService {
 
     private $model;
 
-
     public function __construct($model) {
-
         $this->model = $model;
-
     }
-
 
     public function generatePassword($length, $useNumbers, $useLower, $useUpper) {
 
@@ -62,7 +56,6 @@ class PasswordService {
         foreach ($selectedSets as $set) {
             $passwordChars[] = $set[array_rand($set)];
         }
-
         
         $allAvailableChars = [];
         foreach ($selectedSets as $set) {
@@ -70,7 +63,6 @@ class PasswordService {
         }
 
         $allAvailableChars = array_values(array_unique($allAvailableChars));
-
         $remainingPool = array_diff($allAvailableChars, $passwordChars);
 
         shuffle($remainingPool);
@@ -78,8 +70,6 @@ class PasswordService {
         while (count($passwordChars) < $length) {
             $passwordChars[] = array_pop($remainingPool);
         }
-
-        
 
         shuffle($passwordChars);
 
