@@ -100,7 +100,7 @@ function renderPasswordForm() {
         $service = new PasswordService($model);
 
         $password = $service->generatePassword($length, $useNumbers, $useLower, $useUpper);
-        $escapedPassword = htmlspecialchars($password, ENT_QUOTES | ENT_HTML5);
+        // $escapedPassword = htmlspecialchars($password, ENT_QUOTES | ENT_HTML5);
 
 
     }
@@ -127,7 +127,8 @@ function renderPasswordForm() {
                 <button type="submit">Generate</button>
             </form>
 
-            <div id="password" class="password">{$escapedPassword}</div>
+            <div id="password" class="password"></div>
+            <input type="hidden" id="generatedPassword" value="{$password}">
         </div>
     HTML;
 
@@ -174,22 +175,30 @@ input,button{
 
 </body>
 <script>
-    const newPass = document.getElementById('password').innerText.trim();
+    const passwordDiv = document.getElementById('password');
+    const newPass = document.getElementById('generatedPassword')?.value;
 
     if (newPass && !newPass.includes('At least one')) {
         
-        let storageData = localStorage.getItem('my_passwords');
+        let storageData = localStorage.getItem('my_unique_passwords');
         let history = storageData ? JSON.parse(storageData) : [];
 
         if (!history.includes(newPass)) {
-            history.push(newPass);
-            
-            localStorage.setItem('my_passwords', JSON.stringify(history));
-            console.log("pass saved to LocalStorage!");
-        } else {
-            alert("This pass already exists!");
-        }
 
+            passwordDiv.innerText = newPass;
+
+            history.push(newPass);
+            localStorage.setItem('my_unique_passwords', JSON.stringify(history));
+
+            console.log("pass saved to LocalStorage!");
+
+        } else {
+
+            console.log("Duplicate found, regenerating...");
+
+            document.querySelector("form").submit();
+        }
     }
+
 </script>
 </html> 
