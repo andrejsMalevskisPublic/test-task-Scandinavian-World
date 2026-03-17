@@ -1,0 +1,147 @@
+<?php
+
+class PasswordDataModel {
+    private $input;
+    private $numbers;
+    private $smallLetters;
+    private $capitalLetters;
+
+    private function getInput() {
+        $letters = implode('', range('a', 'z'));
+        $numbers = implode('', range(0, 9));
+        return $letters . $numbers;
+    }
+
+    public function __construct() {
+
+        $this->input = $this->getInput();
+
+        preg_match_all('/\d/', $this->input, $nums);
+        preg_match_all('/[a-z]/', $this->input, $letters);
+
+        $this->numbers = array_unique($nums[0]);
+        $this->smallLetters = $letters[0];
+        $this->capitalLetters = array_map('strtoupper', $letters[0]);
+    }
+
+    public function getNumbers() { return $this->numbers; }
+    public function getSmallLetters() { return $this->smallLetters; }
+    public function getCapitalLetters() { return $this->capitalLetters; }
+}
+
+class PasswordController {
+    private $model;
+
+    public function __construct($model) {
+        $this->model = $model;
+    }
+
+    public function generatePassword($length, $useNumbers, $useLower, $useUpper) {
+        $selectedSets = [];
+        if ($useNumbers) $selectedSets[] = $this->model->getNumbers();
+        if ($useLower) $selectedSets[] = $this->model->getSmallLetters();
+        if ($useUpper) $selectedSets[] = $this->model->getCapitalLetters();
+
+        if (empty($selectedSets)) return 'At least one more needs to be selected!';
+
+        $passwordChars = [];
+
+        foreach ($selectedSets as $set) {
+            $passwordChars[] = $set[array_rand($set)];
+        }
+
+        $allChars = [];
+        foreach ($selectedSets as $set) {
+            $allChars = array_merge($allChars, $set);
+        }
+
+        while (count($passwordChars) < $length) {
+            $passwordChars[] = $allChars[array_rand($allChars)];
+        }
+
+        shuffle($passwordChars);
+
+        return implode('', $passwordChars);
+    }
+}
+
+function renderPasswordForm() {
+
+    $length = 12;
+    $useNumbers = true;
+    $useLower = true;
+    $useUpper = true;
+    $password = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $length = (int)($_POST['length'] ?? 12);
+        $useNumbers = isset($_POST['use_numbers']);
+        $useLower = isset($_POST['use_lowercase']);
+        $useUpper = isset($_POST['use_uppercase']);
+
+        $model = new PasswordDataModel();
+        $controller = new PasswordController($model);
+
+        $password = $controller->generatePassword($length, $useNumbers, $useLower, $useUpper);
+        $escapedPassword = htmlspecialchars($password, ENT_QUOTES | ENT_HTML5);
+
+    }
+
+    $checkedNumbers = $useNumbers ? 'checked' : '';
+    $checkedLower = $useLower ? 'checked' : '';
+    $checkedUpper = $useUpper ? 'checked' : '';
+
+    echo 
+    <<<HTML
+        <div class="box">
+            <h2>Password Generator</h2>
+            <form method="POST">
+                <label>Password length:</label>
+                <input type="number" name="length" value="{$length}" min="4" max="64"><br><br>
+
+                <label><input type="checkbox" name="use_numbers" {$checkedNumbers}> Include numbers</label><br>
+                <label><input type="checkbox" name="use_lowercase" {$checkedLower}> Include lowercase letters</label><br>
+                <label><input type="checkbox" name="use_uppercase" {$checkedUpper}> Include uppercase letters</label><br><br>
+
+                <button type="submit">Generate</button>
+            </form>
+
+            <div class="password">{$escapedPassword}</div>
+        </div>
+    HTML;
+}
+
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Password Generator</title>
+<style>
+body{
+    font-family: Arial;
+    background:#f4f4f4;
+    padding:40px;
+}
+.box{
+    background:white;
+    padding:30px;
+    width:400px;
+    border-radius:10px;
+}
+input,button{
+    padding:10px;
+    font-size:16px;
+}
+.password{
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<?php renderPasswordForm(); ?>
+
+</body>
+</html>
