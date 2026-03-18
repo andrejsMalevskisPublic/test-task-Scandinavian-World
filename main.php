@@ -35,7 +35,6 @@ class PasswordModel {
 
 }
 
-
 class PasswordService {
 
     private $model;
@@ -86,7 +85,6 @@ class PasswordService {
     }
 
 }
-
 
 function renderPasswordForm() {
 
@@ -149,7 +147,6 @@ function renderPasswordForm() {
     HTML;
 
 }
-
 
 ?>
 
@@ -225,6 +222,8 @@ input,button{
 
     const errorDiv = document.getElementById('error');
 
+    const maxCount = calculateTotalCapacity(length)
+
 
     if (newPass) {
         
@@ -246,12 +245,12 @@ input,button{
             localStorage.setItem('my_unique_passwords', JSON.stringify(data));
             console.log("pass saved to LocalStorage!");
 
-        } else if (passwordHistory.includes(newPass)) {
+        } else if (length < maxCount && passwordHistory.includes(newPass)) {
 
             console.log("Duplicate found, regenerating...");
             document.querySelector("form").submit();
 
-        } else if (passwordHistory.length === calculateTotalCapacity(length)) {
+        } else if (passwordHistory.length === maxCount) {
 
             errorDiv.innerText = 'You have used up all possible combinations for this length!'
 
