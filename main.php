@@ -1,5 +1,6 @@
  <?php
 
+class PasswordException extends Exception {}
 
 class PasswordModel {
     private $input;
@@ -50,7 +51,9 @@ class PasswordService {
         if ($useLower) $selectedSets[] = $this->model->getSmallLetters();
         if ($useUpper) $selectedSets[] = $this->model->getCapitalLetters();
 
-        if (empty($selectedSets)) return 'At least one set needs to be selected!';
+        if (empty($selectedSets)) {
+            throw new PasswordException('At least one set must be selected');
+        }
 
         $passwordChars = [];
         foreach ($selectedSets as $set) {
@@ -65,7 +68,7 @@ class PasswordService {
         $allAvailableChars = array_values(array_unique($allAvailableChars));
 
         if ($length > count($allAvailableChars)) {
-            return 'Not enough unique characters to generate this length!';
+            throw new PasswordException('Not enough unique characters to generate desired length');
         }
 
         $remainingPool = array_diff($allAvailableChars, $passwordChars);
@@ -93,6 +96,8 @@ function renderPasswordForm() {
     $useLower = true;
     $useUpper = true;
     $password = '';
+    $escapedPassword = '';
+    $escapedError = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -104,8 +109,13 @@ function renderPasswordForm() {
         $model = new PasswordModel();
         $service = new PasswordService($model);
 
-        $password = $service->generatePassword($length, $useNumbers, $useLower, $useUpper);
-        // $escapedPassword = htmlspecialchars($password, ENT_QUOTES | ENT_HTML5);
+        try {
+            $password = $service->generatePassword($length, $useNumbers, $useLower, $useUpper);
+            $escapedPassword = htmlspecialchars($password, ENT_QUOTES | ENT_HTML5);
+        } catch (PasswordException $e) {
+            $error = $e->getMessage();
+            $escapedError = htmlspecialchars($error, ENT_QUOTES | ENT_HTML5);
+        }
 
 
     }
@@ -133,7 +143,8 @@ function renderPasswordForm() {
             </form>
 
             <div id="password" class="password"></div>
-            <input type="hidden" id="generatedPassword" value="{$password}">
+            <input type="hidden" id="generatedPassword" value="{$escapedPassword}">
+            <div class="error">{$escapedError}</div>
         </div>
     HTML;
 
@@ -172,6 +183,11 @@ input,button{
     font-weight:bold;
 }
 
+.error {
+    font-weight:bold;
+    color: #ff0000
+}
+
 </style>
 </head>
 <body>
@@ -183,7 +199,7 @@ input,button{
     const passwordDiv = document.getElementById('password');
     const newPass = document.getElementById('generatedPassword')?.value;
 
-    if (newPass && (!newPass.includes('At least one') || !newPass.includes('Not enough') ) ) {
+    if (newPass) {
         
         let storageData = localStorage.getItem('my_unique_passwords');
         let history = storageData ? JSON.parse(storageData) : [];
