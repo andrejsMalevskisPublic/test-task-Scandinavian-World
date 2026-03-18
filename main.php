@@ -50,7 +50,7 @@ class PasswordService {
         if ($useLower) $selectedSets[] = $this->model->getSmallLetters();
         if ($useUpper) $selectedSets[] = $this->model->getCapitalLetters();
 
-        if (empty($selectedSets)) return 'At least one more needs to be selected!';
+        if (empty($selectedSets)) return 'At least one needs to be selected!';
 
         $passwordChars = [];
         foreach ($selectedSets as $set) {
