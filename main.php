@@ -183,7 +183,7 @@ input,button{
     const passwordDiv = document.getElementById('password');
     const newPass = document.getElementById('generatedPassword')?.value;
 
-    if (newPass && !newPass.includes('At least one') && !newPass.includes('Not enough')  ) {
+    if (newPass && (!newPass.includes('At least one') || !newPass.includes('Not enough') ) ) {
         
         let storageData = localStorage.getItem('my_unique_passwords');
         let history = storageData ? JSON.parse(storageData) : [];
