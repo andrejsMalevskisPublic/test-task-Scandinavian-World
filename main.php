@@ -50,7 +50,7 @@ class PasswordService {
         if ($useLower) $selectedSets[] = $this->model->getSmallLetters();
         if ($useUpper) $selectedSets[] = $this->model->getCapitalLetters();
 
-        if (empty($selectedSets)) return 'At least one needs to be selected!';
+        if (empty($selectedSets)) return 'At least one set needs to be selected!';
 
         $passwordChars = [];
         foreach ($selectedSets as $set) {
@@ -63,6 +63,11 @@ class PasswordService {
         }
 
         $allAvailableChars = array_values(array_unique($allAvailableChars));
+
+        if ($length > count($allAvailableChars)) {
+            return 'Not enough unique characters to generate this length!';
+        }
+
         $remainingPool = array_diff($allAvailableChars, $passwordChars);
 
         shuffle($remainingPool);
