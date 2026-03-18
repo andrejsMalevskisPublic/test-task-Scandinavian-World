@@ -198,7 +198,7 @@ input,button{
 <script>
 
     function calculateTotalCapacity (length) {
-        let maxCapacity = 0;
+        let maxCapacity = 1;
         let poolSize = 0;
 
         const useNumbers = document.getElementById('use_numbers').checked;
@@ -225,6 +225,7 @@ input,button{
 
     const errorDiv = document.getElementById('error');
 
+
     if (newPass) {
         
         let storageData = localStorage.getItem('my_unique_passwords');
@@ -234,22 +235,23 @@ input,button{
             data[length] = [];
         }
 
-        let history = data[length];
+        let passwordHistory = Array.isArray(data[length]) ? data[length] : [];
+        data[length] = passwordHistory;
 
-        if (!history.includes(newPass)) {
+        if (!passwordHistory.includes(newPass)) {
 
             passwordDiv.innerText = newPass;
-            history.push(newPass);
+            passwordHistory.push(newPass);
 
             localStorage.setItem('my_unique_passwords', JSON.stringify(data));
             console.log("pass saved to LocalStorage!");
 
-        } else if (history.includes(newPass)) {
+        } else if (passwordHistory.includes(newPass)) {
 
             console.log("Duplicate found, regenerating...");
             document.querySelector("form").submit();
 
-        } else if (history.length === calculateTotalCapacity(length)) {
+        } else if (passwordHistory.length === calculateTotalCapacity(length)) {
 
             errorDiv.innerText = 'You have used up all possible combinations for this length!'
 
