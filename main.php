@@ -133,18 +133,18 @@ function renderPasswordForm() {
             <form method="POST">
 
                 <label>Password length:</label>
-                <input type="number" name="length" value="{$length}" min="4" max="64"><br><br>
+                <input type="number" id='length' name="length" value="{$length}" min="4" max="64"><br><br>
 
-                <label><input type="checkbox" name="use_numbers" {$checkedNumbers}> Include numbers</label><br>
-                <label><input type="checkbox" name="use_lowercase" {$checkedLower}> Include lowercase letters</label><br>
-                <label><input type="checkbox" name="use_uppercase" {$checkedUpper}> Include uppercase letters</label><br><br>
+                <label><input id='use_numbers' type="checkbox" name="use_numbers" {$checkedNumbers}> Include numbers</label><br>
+                <label><input id='use_lowercase' type="checkbox" name="use_lowercase" {$checkedLower}> Include lowercase letters</label><br>
+                <label><input id='use_uppercase' type="checkbox" name="use_uppercase" {$checkedUpper}> Include uppercase letters</label><br><br>
 
                 <button type="submit">Generate</button>
             </form>
 
             <div id="password" class="password"></div>
             <input type="hidden" id="generatedPassword" value="{$escapedPassword}">
-            <div class="error">{$escapedError}</div>
+            <div id="error" class="error">{$escapedError}</div>
         </div>
     HTML;
 
@@ -196,28 +196,63 @@ input,button{
 
 </body>
 <script>
+
+    function calculateTotalCapacity (length) {
+        let maxCapacity = 0;
+        let poolSize = 0;
+
+        const useNumbers = document.getElementById('use_numbers').checked;
+        const useLowerCase = document.getElementById('use_lowercase').checked;
+        const useUpperCase = document.getElementById('use_uppercase').checked;
+
+        if (useNumbers) poolSize += 10;
+        if (useLowerCase) poolSize += 26;
+        if (useUpperCase) poolSize += 26;
+
+        if (poolSize === 0) return 0;
+
+        for (let i = 0; i < length; i++) {
+            maxCapacity *= (poolSize - i);
+        }
+
+        return maxCapacity
+    }
+
+
     const passwordDiv = document.getElementById('password');
     const newPass = document.getElementById('generatedPassword')?.value;
+    const length = document.getElementById('length')?.value;
+
+    const errorDiv = document.getElementById('error');
 
     if (newPass) {
         
         let storageData = localStorage.getItem('my_unique_passwords');
-        let history = storageData ? JSON.parse(storageData) : [];
+        let data = storageData ? JSON.parse(storageData) : {};
+
+        if (!data[length]) {
+            data[length] = [];
+        }
+
+        let history = data[length];
 
         if (!history.includes(newPass)) {
 
             passwordDiv.innerText = newPass;
-
             history.push(newPass);
-            localStorage.setItem('my_unique_passwords', JSON.stringify(history));
 
+            localStorage.setItem('my_unique_passwords', JSON.stringify(data));
             console.log("pass saved to LocalStorage!");
 
-        } else {
+        } else if (history.includes(newPass)) {
 
             console.log("Duplicate found, regenerating...");
-
             document.querySelector("form").submit();
+
+        } else if (history.length === calculateTotalCapacity(length)) {
+
+            errorDiv.innerText = 'You have used up all possible combinations for this length!'
+
         }
     }
 
