@@ -245,7 +245,7 @@ input,button{
             localStorage.setItem('my_unique_passwords', JSON.stringify(data));
             console.log("pass saved to LocalStorage!");
 
-        } else if (length < maxCount && passwordHistory.includes(newPass)) {
+        } else if (passwordHistory.length < maxCount && passwordHistory.includes(newPass)) {
 
             console.log("Duplicate found, regenerating...");
             document.querySelector("form").submit();
