@@ -245,7 +245,6 @@ input,button{
         }
 
         let passwordHistory = data[length];
-        const maxCount = calculateTotalCapacity(length);
 
         if (!passwordHistory.includes(newPass)) {
 
@@ -255,7 +254,7 @@ input,button{
             localStorage.setItem('my_unique_passwords', JSON.stringify(data));
             console.log("New password saved for length " + length);
 
-        } else if (passwordHistory.length < maxCount) {
+        } else if (passwordHistory.length < calculateTotalCapacity(length)) {
 
             console.log("Duplicate found, regenerating...");
             document.querySelector("form").submit();
