@@ -194,10 +194,9 @@ input,button{
 </body>
 <script>
 
-    function calculateTotalCapacity (length) {
-        let maxCapacity = 1;
+    function calculateTotalCapacity(length) {
         let poolSize = 0;
-
+        let maxCapacity = 1;
         const useNumbers = document.getElementById('use_numbers').checked;
         const useLowerCase = document.getElementById('use_lowercase').checked;
         const useUpperCase = document.getElementById('use_uppercase').checked;
@@ -206,36 +205,47 @@ input,button{
         if (useLowerCase) poolSize += 26;
         if (useUpperCase) poolSize += 26;
 
-        if (poolSize === 0) return 0;
-
+        if (poolSize === 0 || length > poolSize) return 0;
+        
         for (let i = 0; i < length; i++) {
             maxCapacity *= (poolSize - i);
         }
-
-        return maxCapacity
+        return maxCapacity;
     }
-
 
     const passwordDiv = document.getElementById('password');
     const newPass = document.getElementById('generatedPassword')?.value;
-    const length = document.getElementById('length')?.value;
-
+    const lengthInput = document.getElementById('length');
+    const length = Number(lengthInput?.value) || 12;
     const errorDiv = document.getElementById('error');
 
-    const maxCount = calculateTotalCapacity(length)
-
-
     if (newPass) {
-        
-        let storageData = localStorage.getItem('my_unique_passwords');
-        let data = storageData ? JSON.parse(storageData) : {};
 
-        if (!data[length]) {
+        let storageData = localStorage.getItem('my_unique_passwords');
+        let data = {};
+
+        try {
+            const storageData = localStorage.getItem('my_unique_passwords');
+
+            if (storageData && storageData.startsWith('{')) {
+                data = JSON.parse(storageData);
+            }
+            
+        } catch (e) {
+            console.warn("LocalStorage corrupted, resetting history.");
+            data = {}; 
+        }
+
+        if (typeof data !== 'object' || data === null) {
+            data = {};
+        }
+        
+        if (!Array.isArray(data[length])) {
             data[length] = [];
         }
 
-        let passwordHistory = Array.isArray(data[length]) ? data[length] : [];
-        data[length] = passwordHistory;
+        let passwordHistory = data[length];
+        const maxCount = calculateTotalCapacity(length);
 
         if (!passwordHistory.includes(newPass)) {
 
@@ -243,17 +253,16 @@ input,button{
             passwordHistory.push(newPass);
 
             localStorage.setItem('my_unique_passwords', JSON.stringify(data));
-            console.log("pass saved to LocalStorage!");
+            console.log("New password saved for length " + length);
 
-        } else if (passwordHistory.length < maxCount && passwordHistory.includes(newPass)) {
+        } else if (passwordHistory.length < maxCount) {
 
             console.log("Duplicate found, regenerating...");
             document.querySelector("form").submit();
 
-        } else if (passwordHistory.length === maxCount) {
+        } else {
 
-            errorDiv.innerText = 'You have used up all possible combinations for this length!'
-
+            errorDiv.innerText = 'You have used up all possible combinations for this length!';
         }
     }
 
